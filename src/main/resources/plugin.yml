@@ -1,0 +1,15 @@
+name: AtomCleaner
+version: '${project.version}'
+main: com.atomcleaner.AtomCleaner
+api-version: '1.21.4'
+description: Etkileşimsiz chunk'ları region dosyalarından silerek disk alanı kazandırır
+author: AtomTeam
+load: POSTWORLD
+
+permissions:
+  atomcleaner.admin:
+    description: Plugin yönetim yetkisi
+    default: op
+  atomcleaner.notify:
+    description: Temizlik bildirimlerini görme yetkisi
+    default: op

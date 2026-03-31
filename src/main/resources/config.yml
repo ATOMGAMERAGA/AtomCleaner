@@ -1,0 +1,27 @@
+enabled: true
+cleanup-interval-minutes: 10
+chunks-per-cleanup: 150
+min-time-threshold-seconds: 300
+target-worlds:
+  world:
+    region-subfolder: "region"
+  world_nether:
+    region-subfolder: "DIM-1/region"
+  world_the_end:
+    region-subfolder: "DIM1/region"
+spawn-protection-radius: 10
+verbose-logging: true
+persistence:
+  enabled: true
+  save-interval-minutes: 10
+  directory: "data"
+check-protected-blocks: false
+protected-block-types:
+  - "CHEST"
+  - "TRAPPED_CHEST"
+  - "ENDER_CHEST"
+  - "BARREL"
+  - "SHULKER_BOX"
+  - "BEACON"
+  - "SPAWNER"
+whitelisted-chunks: []
