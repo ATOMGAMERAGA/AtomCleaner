@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
-public class CleanerTask implements Runnable {
+public class CleanerTask {
 
     record RegionScanCursor(
             List<File> regionFiles,
@@ -71,13 +71,20 @@ public class CleanerTask implements Runnable {
         this.persistenceManager = persistenceManager;
     }
 
-    @Override
-    public void run() {
-        if (!config.isEnabled()) return;
+    /**
+     * Starts the cleanup asynchronously.
+     *
+     * @return a future that completes when all async work (scans, checks, deletions, persistence) is done.
+     */
+    public CompletableFuture<Void> runAsync() {
+        if (!config.isEnabled()) return CompletableFuture.completedFuture(null);
 
         if (config.isVerboseLogging()) {
             plugin.getLogger().info("Temizlik başlatılıyor...");
         }
+
+        // done is completed exactly once at every terminal path so callers can track real completion
+        CompletableFuture<Void> done = new CompletableFuture<>();
 
         // Step 1: Gather world folder info on the main thread (world API is main-thread-safe)
         CompletableFuture<List<WorldInfo>> worldInfoFuture = new CompletableFuture<>();
@@ -101,6 +108,7 @@ public class CleanerTask implements Runnable {
         worldInfoFuture.thenAcceptAsync(worldInfoList -> {
             if (worldInfoList.isEmpty()) {
                 plugin.getLogger().info("Taranacak dünya bulunamadı.");
+                done.complete(null);
                 return;
             }
 
@@ -110,6 +118,7 @@ public class CleanerTask implements Runnable {
                 if (config.isVerboseLogging()) {
                     plugin.getLogger().info("Taranacak chunk bulunamadı.");
                 }
+                done.complete(null);
                 return;
             }
 
@@ -213,8 +222,11 @@ public class CleanerTask implements Runnable {
                         if (config.isPersistenceEnabled()) {
                             persistenceManager.saveAll(tracker.getAllWorldData(), config.getMinTimeThresholdMs());
                         }
+
+                        done.complete(null);
                     }, executor).exceptionally(ex -> {
                         plugin.getLogger().log(Level.SEVERE, "Chunk silme sırasında hata oluştu", ex);
+                        done.complete(null);
                         return null;
                     });
 
@@ -234,16 +246,22 @@ public class CleanerTask implements Runnable {
                     if (config.isPersistenceEnabled()) {
                         persistenceManager.saveAll(tracker.getAllWorldData(), config.getMinTimeThresholdMs());
                     }
+
+                    done.complete(null);
                 }
             }, executor).exceptionally(ex -> {
                 plugin.getLogger().log(Level.SEVERE, "Koruma kontrolü sonrası hata oluştu", ex);
+                done.complete(null);
                 return null;
             });
 
         }, executor).exceptionally(ex -> {
             plugin.getLogger().log(Level.SEVERE, "Temizlik sırasında hata oluştu", ex);
+            done.complete(null);
             return null;
         });
+
+        return done;
     }
 
     private List<ChunkCandidate> collectCandidates(List<WorldInfo> worldInfoList) {

@@ -74,6 +74,10 @@ public class ChunkActivityTracker {
         }
     }
 
+    public void cleanupPlayer(UUID playerId) {
+        playerEntryTimes.remove(playerId);
+    }
+
     public void markChunkPersisted(String world, long chunkKey) {
         ConcurrentHashMap<Long, ChunkActivityData> chunks = worldData.get(world);
         if (chunks != null) {

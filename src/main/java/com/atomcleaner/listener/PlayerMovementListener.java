@@ -124,6 +124,7 @@ public class PlayerMovementListener implements Listener {
         if (key != null && config.isTrackedWorld(key.world())) {
             tracker.recordPlayerExit(key.world(), key.chunkX(), key.chunkZ(), uuid);
         }
+        tracker.cleanupPlayer(uuid);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

@@ -65,15 +65,17 @@ public class CleanerScheduler {
             return;
         }
 
-        cleanerExecutor.submit(() -> {
-            try {
-                cleanerTask.run();
-            } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Temizlik görevi çalışırken hata oluştu", e);
-            } finally {
+        try {
+            cleanerTask.runAsync().whenComplete((v, ex) -> {
+                if (ex != null) {
+                    plugin.getLogger().log(Level.SEVERE, "Temizlik görevi çalışırken hata oluştu", ex);
+                }
                 isRunning.set(false);
-            }
-        });
+            });
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Temizlik başlatılırken hata oluştu", e);
+            isRunning.set(false);
+        }
     }
 
     public void triggerManualCleanup() {
@@ -82,15 +84,17 @@ public class CleanerScheduler {
             return;
         }
 
-        cleanerExecutor.submit(() -> {
-            try {
-                cleanerTask.run();
-            } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Manuel temizlik sırasında hata oluştu", e);
-            } finally {
+        try {
+            cleanerTask.runAsync().whenComplete((v, ex) -> {
+                if (ex != null) {
+                    plugin.getLogger().log(Level.SEVERE, "Manuel temizlik sırasında hata oluştu", ex);
+                }
                 isRunning.set(false);
-            }
-        });
+            });
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Manuel temizlik başlatılırken hata oluştu", e);
+            isRunning.set(false);
+        }
     }
 
     public void pause() {
